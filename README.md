@@ -3,7 +3,7 @@ This repository contains instructions for setting up the epilexo environment thr
 
 ## Requirements
 
-In order to use this stack you need to have `docker` and` docker-compose` installed on your machine.
+In order to use this stack you need to have `docker` and `docker-compose` installed on your machine.
 
 ## Components
 
