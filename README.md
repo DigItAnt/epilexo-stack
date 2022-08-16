@@ -30,3 +30,26 @@ To start the entire stack, the user must run the following command from the term
 Once the command is started, docker will download the images and "mount" the various machines afterwards, in a predetermined order.
 
 When docker is done, use the `docker ps` command to display a table with the machines running and their various IP addresses and names.
+
+
+## Configurations
+
+This section contains the information to configure the various machines and make customizations according to your working needs.
+
+The reference point for this guide is the `docker-compose.yml` file and will now be analyzed section by section.
+
+### Epilexo (nginx:latest)
+
+This is the most important section because it contains the machine that runs the application interface.
+
+There are two volumes:
+
+ - the `dist` folder contains a built version of the front-end part of the application
+
+ - under the `nginx` folder contains the server configuration to serve the application (nginx.conf)
+
+	 - **IMPORTANT**: if you want to develop the stack locally, the nginx.conf file will contain the information to work the reverse-proxy and be able to reach the other machines built by docker; if you build the stack on a server, the `nginx.conf` file will only contain the information to tell the server where the folder with the built Angular project is located and all reverse-proxy info must be commented or deleted (if you want).
+
+Another key option is `network_mode: host`, to be used only if you want to develop the stack locally; otherwise, this option should be commented on.
+
+
