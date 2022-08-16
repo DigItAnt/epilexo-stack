@@ -1,0 +1,194 @@
+version: '3.1'
+
+volumes:
+  postgres_data:
+      driver: local
+      
+
+services:
+
+  ### CASH-DB
+
+
+  # mysql -u pippo -p --host=127.0.0.1 -P 13306
+  cash_dbmysql:
+    image: mysql
+    container_name: cash_db_demo
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: belexo
+      #MYSQL_USER: pippo
+      #MYSQL_PASSWORD: pippo
+    ports:
+      - "8058:3306"
+    volumes:
+      - ./cash/tmp/dbcash/:/var/lib/mysql
+      - ./cash/model/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+
+
+  ### CASH-SWAGGER
+  cash:
+    image: openjdk:16
+    container_name: cash_demo
+    ports:
+      - "8057:8080"
+    volumes:
+      - ./cash/target/cash-0.0.1-SNAPSHOT.jar:/cash.jar
+    restart: always
+    environment:
+      MYSQL_URL: jdbc:mysql://cash_dbmysql:3306/belexo?connectTimeout=0&socketTimeout=0&autoReconnect=true
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+    entrypoint: java -jar /cash.jar
+    depends_on:
+      - cash_dbmysql
+  
+ 
+ 
+ 
+  ### KEYCLOAK
+  postgres:
+      image: postgres:11
+      container_name: keycloak_db_demo
+      volumes:
+        - ./keycloak/data/:/var/lib/postgresql/data
+      environment:
+        POSTGRES_DB: keycloak
+        POSTGRES_USER: keycloak
+        POSTGRES_PASSWORD: password
+      ports:
+        - "8056:5432"
+      restart: always
+
+        
+  keycloak:
+    image: quay.io/keycloak/keycloak:14.0.0
+    container_name: keycloak_demo
+    # build:
+    #   context: ./keycloak
+    #   dockerfile: Dockerfile
+    environment:
+      DB_VENDOR: POSTGRES
+      DB_ADDR: postgres
+      DB_DATABASE: keycloak
+      DB_USER: keycloak
+      DB_SCHEMA: public
+      DB_PASSWORD: password
+      KEYCLOAK_USER: admin
+      KEYCLOAK_PASSWORD: admin
+      PROXY_ADDRESS_FORWARDING: "true"
+      KEYCLOAK_IMPORT: /tmp/import/realm-export.json
+      #KC_HOSTNAME: "lari2.ilc.cnr.it"
+      #KC_HTTP_RELATIVE_PATH: "/auth_demo"
+      # Uncomment the line below if you want to specify JDBC parameters. The parameter below is just an example, and it shouldn't be used in production without knowledge. It is highly recommended that you read the PostgreSQL JDBC driver documentation in order to use it.
+      #JDBC_PARAMS: "ssl=true"
+    volumes:
+      - ./keycloak/conf/standalone.xml:/opt/jboss/keycloak/standalone/configuration/standalone.xml
+      - ./keycloak/conf/standalone-ha.xml:/opt/jboss/keycloak/standalone/configuration/standalone-ha.xml
+      - ./keycloak/import/:/tmp/import
+    ports:
+      - "8089:8080"
+    restart: always
+    depends_on:
+      - postgres
+        
+
+   ### LEXO-BACKEND-ITANT-DB
+  lexo_itant_db:
+    image: mysql:8
+    container_name: lexo-backend-itant-db_demo
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+    restart: always
+    ports:
+      - "8055:3306"
+    volumes:
+      - ./lexo-backend-itant/mysql/:/var/lib/mysql
+      - ./lexo-backend-itant/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+
+  ### LEXO-BACKEND-ITANT-SWAGGER
+  lexo_itant:
+    image: tomcat:9.0-jdk8
+    container_name: lexo-backend-itant_demo
+    environment:
+      JPDA_ADDRESS: 8000
+      JPDA_TRANSPORT: "dt_socket"
+      JDBC_USER: lexo
+      JDBC_PASS: LexOServer12
+    restart: always
+    ports:
+      - "8054:8000"
+      - "8053:8080"
+    volumes:
+      - ./lexo-backend-itant/tomcat:/usr/local/tomcat/webapps
+    depends_on:
+      - lexo_itant_db
+    #network_mode: bridge
+  
+  ### GRAPHDB 
+  graphdb_demo:
+    container_name: graphdb_demo
+    # image: ontotext/graphdb:9.3.0-ee
+    build:
+      context: ./graphdb/free-edition
+      dockerfile: Dockerfile
+      args:
+        version: 9.9.0
+    restart: always
+    environment: 
+      GDB_JAVA_OPTS: >-
+        -Xmx2g -Xms2g
+        -Dgraphdb.home=/opt/graphdb/home
+        -Dgraphdb.external-url=http://lari2.ilc.cnr.it/graphdb_demo
+        -Dgraphdb.workbench.importDirectory=/opt/graphdb/home/graphdb-import
+        -Dgraphdb.workbench.cors.enable=true
+        -Denable-context-index=true
+        -Dentity-pool-implementation=transactional
+        -Dhealth.max.query.time.seconds=60
+        -Dgraphdb.append.request.id.headers=true
+        -Dreuse.vars.in.subselects=true
+        
+        
+    ports: 
+      - 8052:7200
+    volumes:
+      - ./graphdb/graphdb-data/gdb_data:/opt/graphdb/home/data
+      - ./graphdb/graphdb-data/workbench_import:/root/graphdb-import
+      - ./graphdb/graphdb-data/workbench_persistence:/opt/graphdb/home/.graphdb-workbench
+    #network_mode: bridge
+
+
+  ### LEIDEN 
+  leiden:
+    container_name: leiden_demo
+    # image: ontotext/graphdb:9.3.0-ee
+    build:
+      context: ./leiden
+      dockerfile: Dockerfile
+    restart: always
+    ports: 
+      - 8051:8080
+    
+        
+
+  ## EPILEXO-FRONTEND
+  epilexo:
+    image: nginx:latest
+    container_name: epilexo_demo
+    restart: always
+    ports:
+      - 8050:80
+    volumes:
+      - ./epilexo/dist/epilexo_demo:/usr/share/nginx/html/epilexo_demo
+      - ./epilexo/nginx/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - keycloak
+      - cash
+      - lexo_itant_db
+      - graphdb_demo
+      - leiden
+    network_mode: host
