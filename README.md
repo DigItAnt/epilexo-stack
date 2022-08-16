@@ -53,3 +53,26 @@ There are two volumes:
 Another key option is `network_mode: host`, to be used only if you want to develop the stack locally; otherwise, this option should be commented on.
 
 
+#### Change base-href 
+Currently, the root base of the front-end project is 'epilexo-demo', but if you want to change the project name you need to download the project source and run the command:
+
+ 1. `ng build --prod --base-href /project-name/`
+ 2.  Copy the builded project in `epilexo/dist/project-name`
+ 3.  Then change the row of the `docker-compose.yml` (section `epilexo` -> `volumes`)
+
+    volumes:
+    
+    - ./epilexo/dist/project-name:/usr/share/nginx/html/project-name
+    
+    - ./epilexo/nginx/nginx.conf:/etc/nginx/nginx.conf
+
+ 4. Finally change the statement in the `nginx.conf` file:
+  
+ ```
+ location /project-name/ {
+	 index index.htm index.html;
+	 try_files $uri $uri/ /project-name/index.html;
+}
+```
+
+5. Run in command line `docker-compose down` and then `docker-compose up -d`
