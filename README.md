@@ -38,6 +38,8 @@ This section contains the information to configure the various machines and make
 
 The reference point for this guide is the `docker-compose.yml` file and will now be analyzed section by section.
 
+
+
 ### Epilexo (nginx:latest)
 
 This is the most important section because it contains the machine that runs the application interface.
@@ -76,6 +78,9 @@ Currently, the root base of the front-end project is 'epilexo-demo', but if you 
 ```
 
 5. Run in command line `docker-compose down` and then `docker-compose up -d`
+
+
+
 
 ### Lexo-backent-itant
 
@@ -122,6 +127,8 @@ Regarding the configuration of the tomcat server that hosts the backend services
 	GraphDb.repository=ExportedItAnt
 	...
 	```
+
+
 
 ### Graphdb
 
