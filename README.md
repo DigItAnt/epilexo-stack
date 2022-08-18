@@ -80,6 +80,7 @@ Currently, the root base of the front-end project is 'epilexo-demo', but if you 
 5. Run in command line `docker-compose down` and then `docker-compose up -d`
 
 
+TODO: authentication parameters by angular way
 
 
 ### Lexo-backent-itant
