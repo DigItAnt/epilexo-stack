@@ -76,3 +76,49 @@ Currently, the root base of the front-end project is 'epilexo-demo', but if you 
 ```
 
 5. Run in command line `docker-compose down` and then `docker-compose up -d`
+
+### Lexo-backent-itant
+
+This part concerns the machines that host the lexicon services, and is composed of a database in mysql and a tomcat machine that houses the swagger and the lexicon management logic.
+
+
+#### *Database configuration*
+
+The database configuration can be found in a file under the `lexo-backend-itant/db` folder. In it there is an SQL procedure that creates a database named `lexo_server` (encoded in UTF-8) and a user (named `lexo`) with full privileges.
+
+These are the instructions contained in the `init.sql` file.
+
+```
+CREATE  DATABASE lexo_server CHARACTER  SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+
+CREATE USER 'lexo'@'%' IDENTIFIED BY  'LexOServer12';
+
+GRANT ALL PRIVILEGES ON *.* TO  'lexo'@'%';
+
+FLUSH PRIVILEGES;
+```
+
+It is important that the `%` character is present in order to accept incoming connections from any source.
+
+#### *Tomcat configuration*
+
+Regarding the configuration of the tomcat server that hosts the backend services for the management of the lexicons, two files must be considered within the path `lexo-backent-itant/tomcat/LexO-backend-itant/WEB-INF/ classes`, that is `hibernate.cfg.xml` and` lexo-server.properties`.
+
+ - In the `hibernate.cfg.xml` file you have to make sure that there is the information to be able to connect to the previously created database on which the tomcat server is based.  In the example below we can see the address to the server (you can also use the machine name given with docker-compose) with the credentials used in the `init.sql` file for creating users and databases.
+
+   ```
+   ...
+   <property  name="hibernate.connection.url">jdbc:mysql://lexo-backend-itant-db_demo:3306/lexo_server?characterEncoding=UTF-8&amp;serverTimezone=Europe/Rome</property>
+   <property  name="hibernate.connection.username">lexo</property>
+   <property  name="hibernate.connection.password">LexOServer12</property>
+   ...
+   ```
+
+- In the file `lexo-server.properties` instead you can find the parameters to connect to the` graphdb` machine that manages the RDF triples containing the ontological information of the lexicon under management (p.s: in local development it is important that the precise IP address is specified because unfortunately the machine cannot resolve the nominal addresses that are set via docker-compose)
+
+	```
+	...
+	GraphDb.url=http://172.20.0.2:7200
+	GraphDb.repository=ExportedItAnt
+	...
+	```
