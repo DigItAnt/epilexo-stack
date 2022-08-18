@@ -53,7 +53,7 @@ There are two volumes:
 Another key option is `network_mode: host`, to be used only if you want to develop the stack locally; otherwise, this option should be commented on.
 
 
-#### Change base-href 
+#### *Change base-href* 
 Currently, the root base of the front-end project is 'epilexo-demo', but if you want to change the project name you need to download the project source and run the command:
 
  1. `ng build --prod --base-href /project-name/`
