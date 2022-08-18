@@ -122,3 +122,20 @@ Regarding the configuration of the tomcat server that hosts the backend services
 	GraphDb.repository=ExportedItAnt
 	...
 	```
+
+### Graphdb
+
+For the development of this machine we rely on the `Dockerfile` present in the path `graphdb/free-edition`, inside which there is also the `.zip` file containing the graphdb sources.
+Currently there is a repository with raw data belonging to the ItAnt project, but it is possible to insert a custom dictionary through the use of volumes in the path `graphdb/graphdb-data/workbench-import` where you have to insert the `.ttl` file containing the reference ontology.
+
+***Configure repository***
+
+[work in progress]
+
+***Change base href***
+
+To change the base-href of the machine (according to your needs) you need to set this information in the Dockerfile using the following commands:
+
+`CMD  ["-Dgraphdb.external-url=https://lari2.ilc.cnr.it/graphdb_demo"]`
+
+There are also configurations inside the docker-compose.yml file, but apparently the information recorded comes mainly from the Dockerfile, for reasons that are currently unknown.
