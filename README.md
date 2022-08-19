@@ -147,3 +147,51 @@ To change the base-href of the machine (according to your needs) you need to set
 `CMD  ["-Dgraphdb.external-url=https://lari2.ilc.cnr.it/graphdb_demo"]`
 
 There are also configurations inside the docker-compose.yml file, but apparently the information recorded comes mainly from the Dockerfile, for reasons that are currently unknown.
+
+### Keycloak
+
+The Keycloak part is about authentication for accessing the front-end interface through federated authentication. Inside the stack is the part that contains the most customizations.
+
+***Docker-compose customization***
+
+Through the environment variables it is possible to set a series of parameters, including the admin user and some DB settings. It is also possible to import old realm configurations.
+
+Here are some environment variables present in the `docker-compose.yml`:
+
+```
+DB_VENDOR: POSTGRES
+DB_ADDR: postgres
+DB_DATABASE: keycloak
+DB_USER: keycloak
+DB_SCHEMA: public
+DB_PASSWORD: password
+KEYCLOAK_USER: admin
+KEYCLOAK_PASSWORD: admin
+PROXY_ADDRESS_FORWARDING: "true" #used for server development
+KEYCLOAK_IMPORT: /tmp/import/realm-export.json
+```
+
+
+***Change web context***
+
+By default, Keycloak redirects the traffic of services to the address `/ auth`, but for different needs it is possible to change this address (eg: I want to set up a second authentication server detached from one already present).
+
+To do this you need to edit two files, `standalone.xml` and` standalone-ha.xml`. Within these files you must modify exactly this node, setting a value of your choice:
+
+``
+<web-context> your_preferred_name </web-context>
+``
+
+These files must be served to the virtual machine via the host across the volumes. In fact, the following directives must be set:
+
+```
+volumes:
+       - ./keycloak/conf/standalone.xml:/opt/jboss/keycloak/standalone/configuration/standalone.xml
+       - ./keycloak/conf/standalone-ha.xml:/opt/jboss/keycloak/standalone/configuration/standalone-ha.xml
+       - ./keycloak/import/:/tmp/import
+```
+
+In this way, when the machine is bootstraped, the instructions will be read and the web-context set.
+
+
+**IMPORTANT**: currently, the configuration that is loaded is that relating to the PRIN-CNR context, but it is possible to omit the import of an existing realm and create another one from scratch. Clearly, it is then necessary to configure the front-end services that interact with keycloak (I'll talk about this later).
