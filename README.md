@@ -32,6 +32,11 @@ Once the command is started, docker will download the images and "mount" the var
 When docker is done, use the `docker ps` command to display a table with the machines running and their various IP addresses and names.
 
 
+To perform tests you can use the following files present in the following repository
+
+[https://github.com/DigItAnt/Data/tree/main/EpidocTestFiles](To%20perform%20tests%20you%20can%20use%20the%20following%20files%20present%20in%20the%20following%20repository%20%20https://github.com/DigItAnt/Data/tree/main/EpidocTestFiles)
+
+
 ## Configurations
 
 This section contains the information to configure the various machines and make customizations according to your working needs.
